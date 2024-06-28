@@ -48,9 +48,33 @@ class PlayersSpider(scrapy.Spider):
                 "Team Statistics URL" : team_stats_fullurl,
                 "Team Schedule URL" : team_schedule_fullurl,
             }
-            # yield scrapy.Request(Team_Details, callback=self.parse, headers={"User-Agent": random.choice(self.user_agent_list)})
-            # yield response.follow(Team_Details, callback=self.parse, headers={"User-Agent": random.choice(self.user_agent_list)}, dont_filter=True)
             yield Team_Details
-                
+            # yield response.follow(team_official_fullurl, callback=self.parse_officialSite, headers={"User-Agent": random.choice(self.user_agent_list)})
+            yield response.follow(team_profile_fullurl, callback=self.parse_team_profile, headers={"User-Agent": random.choice(self.user_agent_list)})
+            # yield response.follow(team_stats_fullurl, callback=self.parse_team_statistics, headers={"User-Agent": random.choice(self.user_agent_list)})
+            # yield response.follow(team_schedule_fullurl, callback=self.parse_team_schedule, headers={"User-Agent": random.choice(self.user_agent_list)})
+    
+    # Nothing much to scrape from here
+    # def parse_officialSite(self, response): 
+    #     url = response.url
+    
+    def parse_team_profile(self, response):
+        url = response.url 
+        current_team_roster = response.css("div.TeamRoster_tableContainer__CUtM0 table tbody tr")
+        for players in current_team_roster: 
+            player_link_information_sideurl = players.css("td a::attr(href)").get()
+            player_name = players.css("td a::text").get()
+            try: 
+                player_number = players.css("td.text TeamRoster_extraPadding__4BsqP ::text").get()
+            except: 
+                player_number = "N/A"
+            player_position = players.css("td ")
+        
+
+    # def parse_team_statistics(self, response): 
+    #     pass
+    
+    # def parse_team_schedule(self, response):
+    #     pass
         
         
