@@ -63,33 +63,33 @@ class PlayersSpider(scrapy.Spider):
         url = response.url 
         current_team_roster = response.css("div.TeamRoster_tableContainer__CUtM0 table tbody tr")
         team_name = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/section/div/div/div[3]/div[1]/div[1]/div[2]/text()').get()
-        # team_roster_details = TeamRoster()
-        # for players in current_team_roster: 
-        #     team_roster_details['Team'] = team_name
-        #     team_roster_details['player_link_information_sideurl'] = players.css("td a::attr(href)").get()
-        #     player_information = players.css("td.text ::text").getall()
-        #     team_roster_details['name'] = player_information[0]
-        #     if player_information[1].isnumeric(): 
-        #         team_roster_details['jersey_number'] = player_information[1]
-        #         team_roster_details['position'] = player_information[2]
-        #         team_roster_details['height'] = player_information[3]
-        #         team_roster_details['weight'] = player_information[4] + player_information[5]
-        #         team_roster_details['birthdate'] = player_information[6]
-        #         team_roster_details['age'] = player_information[7]
-        #         team_roster_details['years_of_experience'] = player_information[8]
-        #         team_roster_details['college'] = player_information[9]
-        #         team_roster_details['method_of_acquisition'] = player_information[10]
-        #     else: 
-        #         team_roster_details['jersey_number'] = "NA"
-        #         team_roster_details['position'] = player_information[1]
-        #         team_roster_details['height'] = player_information[2]
-        #         team_roster_details['weight'] = player_information[3] + player_information[4]
-        #         team_roster_details['birthdate'] = player_information[5]
-        #         team_roster_details['age'] = player_information[6]
-        #         team_roster_details['years_of_experience'] = player_information[7]
-        #         team_roster_details['college'] = player_information[8]
-        #         team_roster_details['method_of_acquisition'] = player_information[9]
-        #     yield team_roster_details
+        team_roster_details = TeamRoster()
+        for players in current_team_roster: 
+            team_roster_details['Team'] = team_name
+            team_roster_details['player_link_information_sideurl'] = players.css("td a::attr(href)").get()
+            player_information = players.css("td.text ::text").getall()
+            team_roster_details['name'] = player_information[0]
+            if player_information[1].isnumeric(): 
+                team_roster_details['jersey_number'] = player_information[1]
+                team_roster_details['position'] = player_information[2]
+                team_roster_details['height'] = player_information[3]
+                team_roster_details['weight'] = player_information[4] + player_information[5]
+                team_roster_details['birthdate'] = player_information[6]
+                team_roster_details['age'] = player_information[7]
+                team_roster_details['years_of_experience'] = player_information[8]
+                team_roster_details['college'] = player_information[9]
+                team_roster_details['method_of_acquisition'] = player_information[10]
+            else: 
+                team_roster_details['jersey_number'] = "NA"
+                team_roster_details['position'] = player_information[1]
+                team_roster_details['height'] = player_information[2]
+                team_roster_details['weight'] = player_information[3] + player_information[4]
+                team_roster_details['birthdate'] = player_information[5]
+                team_roster_details['age'] = player_information[6]
+                team_roster_details['years_of_experience'] = player_information[7]
+                team_roster_details['college'] = player_information[8]
+                team_roster_details['method_of_acquisition'] = player_information[9]
+            yield team_roster_details
         
         # Retrieve Fantasy News
         # fantasy_news_url = 
