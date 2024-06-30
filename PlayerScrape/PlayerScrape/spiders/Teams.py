@@ -61,12 +61,13 @@ class PlayersSpider(scrapy.Spider):
     
     def parse_team_profile(self, response):
         url = response.url 
+        baseurl = "https://www.nba.com"
         current_team_roster = response.css("div.TeamRoster_tableContainer__CUtM0 table tbody tr")
         team_name = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/section/div/div/div[3]/div[1]/div[1]/div[2]/text()').get()
         team_roster_details = TeamRoster()
         for players in current_team_roster: 
             team_roster_details['Team'] = team_name
-            team_roster_details['player_link_information_sideurl'] = players.css("td a::attr(href)").get()
+            team_roster_details['player_link_information_url'] = baseurl + players.css("td a::attr(href)").get()
             player_information = players.css("td.text ::text").getall()
             team_roster_details['name'] = player_information[0]
             if player_information[1].isnumeric(): 
@@ -100,6 +101,11 @@ class PlayersSpider(scrapy.Spider):
         retired_player_details = RetiredPlayers() 
         for player in retired_players_info: 
             retired_player_details['team'] = team_name
+            rp_sideurl = player.css("td.text a::attr(href)").get()
+            if rp_sideurl is not None: 
+                retired_player_details['player_profile_link'] = baseurl + rp_sideurl
+            else: 
+                retired_player_details['player_profile_link'] = "N/A"
             retired_player_stats = player.css("td ::text").getall()
             if retired_player_stats[0].isnumeric(): 
                 retired_player_details['jersey_number'] = retired_player_stats[0]

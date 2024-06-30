@@ -14,7 +14,7 @@ import scrapy
 
 class TeamRoster(scrapy.Item):
     Team = scrapy.Field()
-    player_link_information_sideurl = scrapy.Field()
+    player_link_information_url = scrapy.Field()
     name = scrapy.Field()
     jersey_number = scrapy.Field()
     position = scrapy.Field()
@@ -28,6 +28,7 @@ class TeamRoster(scrapy.Item):
 
 class RetiredPlayers(scrapy.Item):
     team = scrapy.Field()
+    player_profile_link = scrapy.Field()
     jersey_number = scrapy.Field()
     name = scrapy.Field()
     position = scrapy.Field()
