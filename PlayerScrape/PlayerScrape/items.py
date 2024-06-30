@@ -34,3 +34,13 @@ class RetiredPlayers(scrapy.Item):
     position = scrapy.Field()
     seasons_with_team = scrapy.Field() 
     year_of_induction = scrapy.Field()
+
+class HOF(scrapy.Item): 
+    team = scrapy.Field()
+    player_profile_link = scrapy.Field()
+    name = scrapy.Field()
+    position = scrapy.Field()
+    seasons_with_team = scrapy.Field() 
+    year_of_induction = scrapy.Field()
+
+
