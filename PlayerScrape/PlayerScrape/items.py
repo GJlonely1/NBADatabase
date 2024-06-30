@@ -25,3 +25,11 @@ class TeamRoster(scrapy.Item):
     years_of_experience = scrapy.Field()
     college = scrapy.Field()
     method_of_acquisition = scrapy.Field()
+
+class RetiredPlayers(scrapy.Item):
+    team = scrapy.Field()
+    jersey_number = scrapy.Field()
+    name = scrapy.Field()
+    position = scrapy.Field()
+    seasons_with_team = scrapy.Field() 
+    year_of_induction = scrapy.Field()
