@@ -44,3 +44,29 @@ class HOF(scrapy.Item):
     year_of_induction = scrapy.Field()
 
 
+class ALLFantasyNewsDetails(scrapy.Item): 
+    name = scrapy.Field()
+    date_time = scrapy.Field()
+    content = scrapy.Field()
+    
+class TeamAchievementDetails(scrapy.Item):
+    team = scrapy.Field()
+    title = scrapy.Field()
+    years = scrapy.Field()
+
+class TeamBackgroundDetails(scrapy.Item):
+    team = scrapy.Field()
+    field = scrapy.Field()
+    details = scrapy.Field()
+
+class TeamSpecificNewsDetails(scrapy.Item):
+    team = scrapy.Field()
+    date_time = scrapy.Field()
+    headline = scrapy.Field()
+    content = scrapy.Field()
+
+class AllTimeRecords(scrapy.Item):
+    team = scrapy.Field()
+    statline = scrapy.Field()
+    name = scrapy.Field()
+    number = scrapy.Field()

@@ -2,7 +2,7 @@ import scrapy
 import random
 from scrapy import Request
 from urllib.parse import urljoin
-from PlayerScrape.items import TeamRoster, RetiredPlayers, HOF
+from PlayerScrape.items import TeamRoster, RetiredPlayers, HOF, ALLFantasyNewsDetails, TeamSpecificNewsDetails, AllTimeRecords, TeamAchievementDetails, TeamBackgroundDetails
 # from urllib3.parse import urljoin
 
 
@@ -91,10 +91,8 @@ class PlayersSpider(scrapy.Spider):
                 team_roster_details['college'] = player_information[8]
                 team_roster_details['method_of_acquisition'] = player_information[9]
             yield team_roster_details
-        
-        # Retrieve Fantasy News
-        # fantasy_news_url = 
 
+    # Retrieve Retired Numbers of Players
         retired_players_table = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/div[3]/div[4]/div/div[1]/section/div/div[2]/div')
         retired_players_info = retired_players_table.css("table tbody tr")
         retired_player_details = RetiredPlayers() 
@@ -120,7 +118,7 @@ class PlayersSpider(scrapy.Spider):
                 retired_player_details['year_of_induction'] = retired_player_stats[3]
             yield retired_player_details
 
-        # Retrieve Hall of Fame Players
+    # Retrieve Hall of Fame Players
         HOF_table = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/div[3]/div[4]/div/div[2]/section/div/div[2]/div')
         HOF_players = HOF_table.css("table tbody tr")
         HOF_player_details = HOF()
@@ -139,6 +137,53 @@ class PlayersSpider(scrapy.Spider):
             HOF_player_details['year_of_induction'] = hof_player_stats[-1]
 
             yield HOF_player_details
+            
+    
+    # Access Team Specific Fantasy News
+        team_specific_news = response.css("div article")
+        team_news = TeamSpecificNewsDetails()
+        for news in team_specific_news: 
+            team_news['team'] = team_name
+            team_news['date_time'] = news.css("p.TeamFantasyNews_articleDate__SrBm7 ::text").get()
+            team_news['headline'] = news.css("p.TeamFantasyNews_articleHeadline__02sbs ::text").get()
+            team_news['content'] = news.css("p.TeamFantasyNews_articleContent__x7vps ::text").get()
+            yield team_news
+            
+    # Retrieve All Time Records
+        all_time_records_table = response.css("table.TeamRecords_table__0iapO tbody tr")
+        all_time_records = AllTimeRecords()
+        for indiv_stat in all_time_records_table:
+            all_time_records['team'] = team_name
+            all_time_records['statline'] = indiv_stat.css("td.TeamRecords_text__sr_pn ::text").get()
+            all_time_records['name'] = indiv_stat.css("td.TeamRecords_player__1qlhr a::text").get()
+            all_time_records['number'] = indiv_stat.css("td.TeamRecords_stat__R8MJw ::text").get()
+            yield all_time_records
+
+    # Retrieve Team Achievements
+
+    
+    
+    # # Get link to access fantasy news site to retrieve all news
+        protocol = "https:"
+        fantasy_news_path = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/div[3]/div[3]/div/div[2]/section/div/div[1]/div')
+        fantasy_news_sideurl = fantasy_news_path.css("a ::attr(href)").get()
+        fantasy_news_url = protocol + str(fantasy_news_sideurl) 
+        
+        yield response.follow(fantasy_news_url, callback=self.parse_fantasy_news_all, headers={"User-Agent": random.choice(self.user_agent_list)})
+
+    # # Retrieve Fantasy News - Only need to retrieve once because all fantasy news are the same
+    def parse_fantasy_news_all(self, response): 
+        url = response.url
+        fantasy_news_list = response.css("div.flex article")
+        fantasy_news_details = ALLFantasyNewsDetails() 
+        for indiv_news in fantasy_news_list: 
+            fantasy_news_details['name'] = indiv_news.css("h2.StatsFantasyNewsItem_header__BTj_m a ::text").get()
+            fantasy_news_details['date_time'] = indiv_news.css("time.StatsFantasyNewsItem_time__Y804k ::text").get()
+            fantasy_news_details['content'] = indiv_news.css("section.StatsFantasyNewsItem_content__XZs6Q p ::text").get() 
+            yield fantasy_news_details
+        
+        
+        
 
     # def parse_team_statistics(self, response): 
     #     pass
