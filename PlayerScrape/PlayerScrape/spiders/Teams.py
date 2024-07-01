@@ -160,10 +160,39 @@ class PlayersSpider(scrapy.Spider):
             yield all_time_records
 
     # Retrieve Team Achievements
-
+        years_title_list = []
+        team_achievement_table = response.css("div div.TeamAwards_group__XU0o9")
+        team_achievement = TeamAchievementDetails() 
+        team_achievement['team'] = team_name
+        for ta in team_achievement_table:
+            try:
+                team_achievement['title'] = ta.css("h3.TeamAwards_heading__BvLNE ::text").get()
+            except: 
+                team_achievement['title'] = "N/A"
+            try:     
+                years_list = ta.css("ul.TeamAwards_list__EvaDJ li")
+                for year in years_list:
+                    years_title_list.append(year.css("li.TeamAwards_listItem__rb4hz ::text").get())
+                team_achievement['years'] = years_title_list
+            except: 
+                team_achievement['years'] = "N/A"
     
+            yield team_achievement
     
-    # # Get link to access fantasy news site to retrieve all news
+    # Retrieve Team Background Information
+        team_background_info = TeamBackgroundDetails() 
+        tb_table = response.css('dl.TeamBackground_list__y1CMX')
+        all_fields = tb_table.css('dt ::text').getall() 
+        all_details = tb_table.css('dd ::text').getall()
+        
+        team_background_info['team'] = team_name
+        # Currently returning wrong order of info. Need to fix.
+        for i in range(0, len(all_fields) - 1):
+            team_background_info['field'] = all_fields[i]
+            team_background_info['details'] = all_details[i]
+            yield team_background_info 
+    
+    # Get link to access fantasy news site to retrieve all news
         protocol = "https:"
         fantasy_news_path = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/div[3]/div[3]/div/div[2]/section/div/div[1]/div')
         fantasy_news_sideurl = fantasy_news_path.css("a ::attr(href)").get()
@@ -171,7 +200,7 @@ class PlayersSpider(scrapy.Spider):
         
         yield response.follow(fantasy_news_url, callback=self.parse_fantasy_news_all, headers={"User-Agent": random.choice(self.user_agent_list)})
 
-    # # Retrieve Fantasy News - Only need to retrieve once because all fantasy news are the same
+    # Retrieve Fantasy News - Only need to retrieve once because all fantasy news are the same
     def parse_fantasy_news_all(self, response): 
         url = response.url
         fantasy_news_list = response.css("div.flex article")
