@@ -23,6 +23,17 @@ FEEDS = {
     'nba_players.json' : {'format' : 'json'},
     'nba_players.csv' : {'format' : 'csv'}
 }
+CHROME_DRIVER_PATH = "C:/Users/guojiefoo/OneDrive/Documents/GitHub/NBADatabase/chromedriver-win64/chromedriver.exe"
+# for chrome driver 
+from shutil import which
+  
+SELENIUM_DRIVER_NAME = 'chrome'
+SELENIUM_DRIVER_EXECUTABLE_PATH = which('chromedriver')
+SELENIUM_DRIVER_ARGUMENTS=[]  
+  
+DOWNLOADER_MIDDLEWARES = {
+     'scrapy_selenium.SeleniumMiddleware': 800
+     }
 
 DOWNLOAD_TIMEOUT = 500  # set timeout to 500 seconds
 DOWNLOAD_DELAY = 0.50    # 500ms of delay
