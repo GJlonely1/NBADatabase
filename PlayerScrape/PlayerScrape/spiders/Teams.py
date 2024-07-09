@@ -349,6 +349,8 @@ class PlayersSpider(scrapy.Spider):
         player_box_score_last5games['field_goals_percentage'] = box_score_table[7].css("td ::text").get()
         player_box_score_last5games['three_pt_made'] = box_score_table[8].css("a ::text").get()
         
+        yield player_box_score_last5games
+        
         
         player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
         player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
