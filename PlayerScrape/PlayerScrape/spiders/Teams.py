@@ -64,6 +64,8 @@ class PlayersSpider(scrapy.Spider):
             # yield response.follow(team_official_fullurl, callback=self.parse_officialSite, headers={"User-Agent": random.choice(self.user_agent_list)})
             yield response.follow(team_profile_fullurl, callback=self.parse_team_profile, headers={"User-Agent": random.choice(self.user_agent_list)})
             # yield response.follow(team_stats_fullurl, callback=self.parse_team_statistics, headers={"User-Agent": random.choice(self.user_agent_list)})
+            yield response.follow(team_profile_fullurl, callback=self.parse_team_profile, headers={"User-Agent": random.choice(self.user_agent_list)})
+            # yield response.follow(team_stats_fullurl, callback=self.parse_team_statistics, headers={"User-Agent": random.choice(self.user_agent_list)})
             # yield response.follow(team_schedule_fullurl, callback=self.parse_team_schedule, headers={"User-Agent": random.choice(self.user_agent_list)})
         
         # fantasy_news_url = "https://www.nba.com/stats/fantasynews"
@@ -107,6 +109,38 @@ class PlayersSpider(scrapy.Spider):
             yield team_roster_details
             
             yield response.follow(full_player_url, callback=self.player_information, headers={"User-Agent": random.choice(self.user_agent_list)})
+    def parse_team_profile(self, response):
+        url = response.url 
+        baseurl = "https://www.nba.com"
+        current_team_roster = response.css("div.TeamRoster_tableContainer__CUtM0 table tbody tr")
+        team_name = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/section/div/div/div[3]/div[1]/div[1]/div[2]/text()').get()
+        team_roster_details = TeamRoster()
+        for players in current_team_roster: 
+            team_roster_details['Team'] = team_name
+            team_roster_details['player_link_information_url'] = baseurl + players.css("td a::attr(href)").get()
+            player_information = players.css("td.text ::text").getall()
+            team_roster_details['name'] = player_information[0]
+            if player_information[1].isnumeric(): 
+                team_roster_details['jersey_number'] = player_information[1]
+                team_roster_details['position'] = player_information[2]
+                team_roster_details['height'] = player_information[3]
+                team_roster_details['weight'] = player_information[4] + player_information[5]
+                team_roster_details['birthdate'] = player_information[6]
+                team_roster_details['age'] = player_information[7]
+                team_roster_details['years_of_experience'] = player_information[8]
+                team_roster_details['college'] = player_information[9]
+                team_roster_details['method_of_acquisition'] = player_information[10]
+            else: 
+                team_roster_details['jersey_number'] = "NA"
+                team_roster_details['position'] = player_information[1]
+                team_roster_details['height'] = player_information[2]
+                team_roster_details['weight'] = player_information[3] + player_information[4]
+                team_roster_details['birthdate'] = player_information[5]
+                team_roster_details['age'] = player_information[6]
+                team_roster_details['years_of_experience'] = player_information[7]
+                team_roster_details['college'] = player_information[8]
+                team_roster_details['method_of_acquisition'] = player_information[9]
+            yield team_roster_details
 
     # # Retrieve Retired Numbers of Players
         retired_players_table = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/div[3]/div[4]/div/div[1]/section/div/div[2]/div')
@@ -208,22 +242,22 @@ class PlayersSpider(scrapy.Spider):
             yield team_background_info 
     
     # # Get link to access fantasy news site to retrieve all news
-    #     protocol = "https:"
-    #     fantasy_news_path = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/div[3]/div[3]/div/div[2]/section/div/div[1]/div')
-    #     fantasy_news_sideurl = fantasy_news_path.css("a ::attr(href)").get()
-    #     fantasy_news_url = protocol + str(fantasy_news_sideurl) 
+        protocol = "https:"
+        fantasy_news_path = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/div[3]/div[3]/div/div[2]/section/div/div[1]/div')
+        fantasy_news_sideurl = fantasy_news_path.css("a ::attr(href)").get()
+        fantasy_news_url = protocol + str(fantasy_news_sideurl) 
         
-    #     yield response.follow(fantasy_news_url, callback=self.parse_fantasy_news_all, headers={"User-Agent": random.choice(self.user_agent_list)})
+        yield response.follow(fantasy_news_url, callback=self.parse_fantasy_news_all, headers={"User-Agent": random.choice(self.user_agent_list)})
 
     # # Retrieve Fantasy News - Only need to retrieve once because all fantasy news are the same. Checking has to be done at the start. 
-    # def parse_fantasy_news_all(self, response): 
-    #     fantasy_news_list = response.css("div.flex article")
-    #     fantasy_news_details = ALLFantasyNewsDetails() 
-    #     for indiv_news in fantasy_news_list: 
-    #         fantasy_news_details['name'] = indiv_news.css("h2.StatsFantasyNewsItem_header__BTj_m a ::text").get()
-    #         fantasy_news_details['date_time'] = indiv_news.css("time.StatsFantasyNewsItem_time__Y804k ::text").get()
-    #         fantasy_news_details['content'] = indiv_news.css("section.StatsFantasyNewsItem_content__XZs6Q p ::text").get() 
-    #         yield fantasy_news_details
+    def parse_fantasy_news_all(self, response): 
+        fantasy_news_list = response.css("div.flex article")
+        fantasy_news_details = ALLFantasyNewsDetails() 
+        for indiv_news in fantasy_news_list: 
+            fantasy_news_details['name'] = indiv_news.css("h2.StatsFantasyNewsItem_header__BTj_m a ::text").get()
+            fantasy_news_details['date_time'] = indiv_news.css("time.StatsFantasyNewsItem_time__Y804k ::text").get()
+            fantasy_news_details['content'] = indiv_news.css("section.StatsFantasyNewsItem_content__XZs6Q p ::text").get() 
+            yield fantasy_news_details
 
 
     # def parse_team_statistics(self, response): 
