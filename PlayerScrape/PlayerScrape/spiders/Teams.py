@@ -3,7 +3,7 @@ import time
 import random
 from scrapy import Request
 from urllib.parse import urljoin
-from PlayerScrape.items import TeamRoster, RetiredPlayers, HOF, ALLFantasyNewsDetails, TeamSpecificNewsDetails, AllTimeRecords, TeamAchievementDetails, TeamBackgroundDetails, PlayerProfile, PlayerBoxScoreLast5Games
+from PlayerScrape.items import TeamRoster, RetiredPlayers, HOF, ALLFantasyNewsDetails, TeamSpecificNewsDetails, AllTimeRecords, TeamAchievementDetails, TeamBackgroundDetails, PlayerProfile
 # from urllib3.parse import urljoin
 from scrapy_selenium import SeleniumRequest
 from selenium.webdriver.common.by import By
@@ -64,8 +64,6 @@ class PlayersSpider(scrapy.Spider):
             # yield response.follow(team_official_fullurl, callback=self.parse_officialSite, headers={"User-Agent": random.choice(self.user_agent_list)})
             yield response.follow(team_profile_fullurl, callback=self.parse_team_profile, headers={"User-Agent": random.choice(self.user_agent_list)})
             # yield response.follow(team_stats_fullurl, callback=self.parse_team_statistics, headers={"User-Agent": random.choice(self.user_agent_list)})
-            yield response.follow(team_profile_fullurl, callback=self.parse_team_profile, headers={"User-Agent": random.choice(self.user_agent_list)})
-            # yield response.follow(team_stats_fullurl, callback=self.parse_team_statistics, headers={"User-Agent": random.choice(self.user_agent_list)})
             # yield response.follow(team_schedule_fullurl, callback=self.parse_team_schedule, headers={"User-Agent": random.choice(self.user_agent_list)})
         
         # fantasy_news_url = "https://www.nba.com/stats/fantasynews"
@@ -91,56 +89,24 @@ class PlayersSpider(scrapy.Spider):
                 team_roster_details['position'] = player_information[2]
                 team_roster_details['height'] = player_information[3]
                 team_roster_details['weight'] = player_information[4] + player_information[5]
-                team_roster_details['birthdate'] = player_information[6]
-                team_roster_details['age'] = player_information[7]
-                team_roster_details['years_of_experience'] = player_information[8]
-                team_roster_details['college'] = player_information[9]
-                team_roster_details['method_of_acquisition'] = player_information[10]
+                team_roster_details['birthdate'] = player_information[-5]
+                team_roster_details['age'] = player_information[-4]
+                team_roster_details['years_of_experience'] = player_information[-3]
+                team_roster_details['college'] = player_information[-2]
+                team_roster_details['method_of_acquisition'] = player_information[-1]
             else: 
                 team_roster_details['jersey_number'] = "NA"
                 team_roster_details['position'] = player_information[1]
                 team_roster_details['height'] = player_information[2]
                 team_roster_details['weight'] = player_information[3] + player_information[4]
                 team_roster_details['birthdate'] = player_information[5]
-                team_roster_details['age'] = player_information[6]
-                team_roster_details['years_of_experience'] = player_information[7]
-                team_roster_details['college'] = player_information[8]
-                team_roster_details['method_of_acquisition'] = player_information[9]
+                team_roster_details['age'] = player_information[-4]
+                team_roster_details['years_of_experience'] = player_information[-3]
+                team_roster_details['college'] = player_information[-2]
+                team_roster_details['method_of_acquisition'] = player_information[-1]
             yield team_roster_details
             
             yield response.follow(full_player_url, callback=self.player_information, headers={"User-Agent": random.choice(self.user_agent_list)})
-    def parse_team_profile(self, response):
-        url = response.url 
-        baseurl = "https://www.nba.com"
-        current_team_roster = response.css("div.TeamRoster_tableContainer__CUtM0 table tbody tr")
-        team_name = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/section/div/div/div[3]/div[1]/div[1]/div[2]/text()').get()
-        team_roster_details = TeamRoster()
-        for players in current_team_roster: 
-            team_roster_details['Team'] = team_name
-            team_roster_details['player_link_information_url'] = baseurl + players.css("td a::attr(href)").get()
-            player_information = players.css("td.text ::text").getall()
-            team_roster_details['name'] = player_information[0]
-            if player_information[1].isnumeric(): 
-                team_roster_details['jersey_number'] = player_information[1]
-                team_roster_details['position'] = player_information[2]
-                team_roster_details['height'] = player_information[3]
-                team_roster_details['weight'] = player_information[4] + player_information[5]
-                team_roster_details['birthdate'] = player_information[6]
-                team_roster_details['age'] = player_information[7]
-                team_roster_details['years_of_experience'] = player_information[8]
-                team_roster_details['college'] = player_information[9]
-                team_roster_details['method_of_acquisition'] = player_information[10]
-            else: 
-                team_roster_details['jersey_number'] = "NA"
-                team_roster_details['position'] = player_information[1]
-                team_roster_details['height'] = player_information[2]
-                team_roster_details['weight'] = player_information[3] + player_information[4]
-                team_roster_details['birthdate'] = player_information[5]
-                team_roster_details['age'] = player_information[6]
-                team_roster_details['years_of_experience'] = player_information[7]
-                team_roster_details['college'] = player_information[8]
-                team_roster_details['method_of_acquisition'] = player_information[9]
-            yield team_roster_details
 
     # # Retrieve Retired Numbers of Players
         retired_players_table = response.xpath('//*[@id="__next"]/div[2]/div[2]/main/div[3]/div[4]/div/div[1]/section/div/div[2]/div')
@@ -330,41 +296,50 @@ class PlayersSpider(scrapy.Spider):
             }
             player_news_compiled.append(news)
         player_profile['player_news'] = player_news_compiled
+        base_url = "https://www.nba.com"
+        # player_box_score_last5games = PlayerBoxScoreLast5Games() 
+        box_score_table  = response.css('div.MockStatsTable_statsTable__V_Skx div table tbody tr')
+        player_box_score_compiled = []
+        # player_profile['player_name'] = player_name
+        for row in box_score_table: 
+            numbers = row.css("td ::text").getall()
+            # url_access = row.css("a ::text").getall() 
+            sideurl = row.css("a ::attr(href)").get()
+            score_details = {
+                'Game Date' : numbers[0], 
+                'Game URL' : f'{base_url}{sideurl}',
+                'Matchup' : numbers[1],
+                'Win_Lose' : numbers[2],
+                'Minutes Played' : numbers[3],
+                'Points' : numbers[4],
+                'Field Goals Made' : numbers[5],
+                'Field Goals Attempted' : numbers[6],
+                'Field Goals Percentage' : numbers[7],
+                'Three Points Made' : numbers[8],
+                'Three Points Attempted' : numbers[9],
+                'Three Points Percentage' : numbers[10],    
+                'Free Throws Made' : numbers[11],
+                'Free Throws Attempted' :numbers[-11],
+                'Free Throws Percentage' : numbers[-10],
+                'Offensive Rebounds' :  numbers[-9],
+                'Defensive Rebounds' : numbers[-8],
+                'Total Rebounds' : numbers[-7],
+                'Assists' : numbers[-6],
+                'Steals' : numbers[-5],
+                'Blocks' : numbers[-4],
+                'Turnover' : numbers[-3],
+                'Personal Fouls' : numbers[-2],
+                'Plus Minus' : numbers[-1],
+            }
+            player_box_score_compiled.append(score_details)
+        player_profile['box_score'] = player_box_score_compiled
         yield player_profile
         
         
-        base_url = "https://www.nba.com"
-        player_box_score_last5games = PlayerBoxScoreLast5Games() 
-        box_score_table  = response.css('div.MockStatsTable_statsTable__V_Skx div table tbody tr td')
-        player_box_score_last5games['player_name'] = player_name
-        game_sideurl = box_score_table[0].css("a ::attr(href)").get()
-        player_box_score_last5games['game_date'] = box_score_table[0].css("a ::text").get() 
-        player_box_score_last5games['game_url'] = base_url + game_sideurl
-        player_box_score_last5games['matchup'] = box_score_table[1].css("td.text ::text").get()
-        player_box_score_last5games['win_lose'] = box_score_table[2].css("td ::text").get()
-        player_box_score_last5games['minutes_played'] = box_score_table[3].css("td ::text").get()
-        player_box_score_last5games['points'] = box_score_table[4].css("td ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_attempted'] = box_score_table[6].css("a ::text").get()
-        player_box_score_last5games['field_goals_percentage'] = box_score_table[7].css("td ::text").get()
-        player_box_score_last5games['three_pt_made'] = box_score_table[8].css("a ::text").get()
-        
-        yield player_box_score_last5games
+
+
         
         
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
-        player_box_score_last5games['field_goals_made'] = box_score_table[5].css("a ::text").get()
+
         
         
